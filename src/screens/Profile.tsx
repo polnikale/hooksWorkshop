@@ -1,38 +1,25 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button, Text, View } from 'react-native';
-import { NavigationInjectedProps } from 'react-navigation';
-import { connect } from 'react-redux';
+import { useNavigation } from 'react-navigation-hooks';
+import { useSelector } from 'react-redux';
 import * as AuthSelectors from '../redux/auth/selectors';
-import { ApplicationState } from '../redux/types';
-import User from '../types/User';
 
-interface StateProps {
-  user?: User;
-}
-type Props = StateProps & NavigationInjectedProps;
+interface Props {}
 
-class Profile extends React.Component<Props> {
-  public render() {
-    const { user } = this.props;
+const Profile: React.FunctionComponent<Props> = () => {
+  const { goBack } = useNavigation();
+  const user = useSelector(AuthSelectors.getUser);
 
-    return (
-      <View style={{ padding: 40 }}>
-        <Text>Profile</Text>
-        <Text>{user && user.name}</Text>
-        <Button title="GO back" onPress={this.onGoBack} />
-      </View>
-    );
-  }
+  const onGoBack = useCallback(() => {
+    goBack();
+  }, [goBack]);
 
-  private onGoBack = () => {
-    const { navigation } = this.props;
-
-    navigation.goBack();
-  };
-}
-
-const mapStateToProps = (state: ApplicationState): StateProps => ({
-  user: AuthSelectors.getUser(state),
-});
-
-export default connect(mapStateToProps)(Profile);
+  return (
+    <View style={{ padding: 40 }}>
+      <Text>Profile</Text>
+      <Text>{user && user.name}</Text>
+      <Button title="GO back" onPress={onGoBack} />
+    </View>
+  );
+};
+export default Profile;
