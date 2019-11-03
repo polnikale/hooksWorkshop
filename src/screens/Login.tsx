@@ -1,53 +1,38 @@
 import React, { Dispatch, useCallback, useEffect, useState } from 'react';
+import { Button, Text, TextInput, View } from 'react-native';
 import { connect, useDispatch } from 'react-redux';
 import { Actions } from 'src/redux/auth/actions';
+import useField from '../hooks/useField';
 import useKeyboardHeight from '../hooks/useKeyboardHeight';
 import * as AuthActions from '../redux/auth/actions';
 import User from '../types/User';
-import {
-  Button,
-  Text,
-  TextInput,
-  View,
-  Keyboard,
-  Platform,
-  EmitterSubscription,
-  KeyboardEvent,
-} from 'react-native';
 
 interface Props {}
 
 const Login: React.FunctionComponent<Props> = () => {
-  const [email, setEmail] = useState<string | undefined>(undefined);
-  const [password, setPassword] = useState<string | undefined>(undefined);
-  const [name, setName] = useState<string | undefined>(undefined);
-  const [lastName, setLastName] = useState<string | undefined>(undefined);
+  const [email, onEmailChange, emailError] = useField('');
+  const [password, onPasswordChange, passwordError] = useField('');
+  const [name, onNameChange, nameError] = useField('');
+  const [lastName, onLastNameChange, lastNameError] = useField('');
   const keyboardHeight = useKeyboardHeight();
-
-  const onEmailChange = useCallback((newEmail: string) => {
-    setEmail(newEmail);
-  }, []);
-  const onPasswordChange = useCallback((newPassword: string) => {
-    setPassword(newPassword);
-  }, []);
-  const onNameChange = useCallback((newName: string) => {
-    setName(newName);
-  }, []);
-  const onLastNameChange = useCallback((newLastName: string) => {
-    setLastName(newLastName);
-  }, []);
 
   const dispatch = useDispatch();
 
   const onLogin = useCallback(() => {
     dispatch(
       AuthActions.setUser({
-        name: name || '',
-        lastName: lastName || '',
-        email: email || '',
+        name,
+        lastName,
+        email,
       }),
     );
   }, [name, lastName, email, dispatch]);
+
+  const submitDisabled =
+    emailError !== false ||
+    nameError !== false ||
+    passwordError !== false ||
+    lastNameError !== false;
 
   return (
     <View
@@ -64,7 +49,7 @@ const Login: React.FunctionComponent<Props> = () => {
           onChangeText={onEmailChange}
           placeholder="email"
         />
-        {email === '' && <Text>Wrong email!</Text>}
+        {emailError && <Text>Wrong email!</Text>}
       </View>
       <View style={{ padding: 20 }}>
         <TextInput
@@ -72,7 +57,7 @@ const Login: React.FunctionComponent<Props> = () => {
           onChangeText={onPasswordChange}
           placeholder="password"
         />
-        {password === '' && <Text>Wrong pass!</Text>}
+        {passwordError && <Text>Wrong pass!</Text>}
       </View>
       <View style={{ padding: 20 }}>
         <TextInput
@@ -80,7 +65,7 @@ const Login: React.FunctionComponent<Props> = () => {
           onChangeText={onNameChange}
           placeholder="name"
         />
-        {name === '' && <Text>Wrong name!</Text>}
+        {nameError && <Text>Wrong name!</Text>}
       </View>
       <View style={{ padding: 20 }}>
         <TextInput
@@ -88,13 +73,9 @@ const Login: React.FunctionComponent<Props> = () => {
           onChangeText={onLastNameChange}
           placeholder="lastName"
         />
-        {lastName === '' && <Text>Wrong lastName!</Text>}
+        {lastNameError && <Text>Wrong lastName!</Text>}
       </View>
-      <Button
-        title="Sign me up!"
-        onPress={onLogin}
-        disabled={!email || !password || !name || !lastName}
-      />
+      <Button title="Sign me up!" onPress={onLogin} disabled={submitDisabled} />
     </View>
   );
 };
