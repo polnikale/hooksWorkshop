@@ -1,4 +1,4 @@
-import React, { Dispatch } from 'react';
+import React, { Dispatch, useCallback, useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Actions } from 'src/redux/auth/actions';
 import * as AuthActions from '../redux/auth/actions';
@@ -18,138 +18,102 @@ interface DispatchProps {
   setUser: (user: User) => void;
 }
 
-type Props = DispatchProps;
-interface State {
-  email?: string;
-  password?: string;
-  name?: string;
-  lastName?: string;
-  keyboardHeight: number;
-}
+interface Props {}
 
-class Login extends React.Component<Props, State> {
-  public state = {
-    email: undefined,
-    password: undefined,
-    name: undefined,
-    lastName: undefined,
-    keyboardHeight: 0,
-  };
+const Login: React.FunctionComponent<Props> = () => {
+  const [email, setEmail] = useState<string | undefined>(undefined);
+  const [password, setPassword] = useState<string | undefined>(undefined);
+  const [name, setName] = useState<string | undefined>(undefined);
+  const [lastName, setLastName] = useState<string | undefined>(undefined);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-  private keyboardDidShowListener?: EmitterSubscription;
-  private keyboardDidHideListener?: EmitterSubscription;
+  const onEmailChange = useCallback((newEmail: string) => {
+    setEmail(newEmail);
+  }, []);
+  const onPasswordChange = useCallback((newPassword: string) => {
+    setPassword(newPassword);
+  }, []);
+  const onNameChange = useCallback((newName: string) => {
+    setName(newName);
+  }, []);
+  const onLastNameChange = useCallback((newLastName: string) => {
+    setLastName(newLastName);
+  }, []);
 
-  public componentDidMount() {
-    this.keyboardDidShowListener = Keyboard.addListener(
+  const onOpenKeyboard = useCallback((event: KeyboardEvent) => {
+    setKeyboardHeight(event.endCoordinates.height);
+  }, []);
+  const onCloseKeyboard = useCallback(() => {
+    setKeyboardHeight(0);
+  }, []);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      this.onOpenKeyboard,
+      onOpenKeyboard,
     );
-    this.keyboardDidHideListener = Keyboard.addListener(
+    const keyboardDidHideListener = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      this.onCloseKeyboard,
+      onCloseKeyboard,
     );
-  }
 
-  public componentWillUnmount() {
-    this.keyboardDidHideListener && this.keyboardDidHideListener.remove();
-    this.keyboardDidShowListener && this.keyboardDidShowListener.remove();
-  }
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
-  public render() {
-    const { email, password, name, lastName, keyboardHeight } = this.state;
+  const onLogin = useCallback(() => {}, [name, lastName, email, password]);
 
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingBottom: keyboardHeight,
-        }}>
-        <Text>Login</Text>
-        <View style={{ padding: 20 }}>
-          <TextInput
-            value={email}
-            onChangeText={this.onEmailChange}
-            placeholder="email"
-          />
-          {email === '' && <Text>Wrong email!</Text>}
-        </View>
-        <View style={{ padding: 20 }}>
-          <TextInput
-            value={password}
-            onChangeText={this.onPasswordChange}
-            placeholder="password"
-          />
-          {password === '' && <Text>Wrong pass!</Text>}
-        </View>
-        <View style={{ padding: 20 }}>
-          <TextInput
-            value={name}
-            onChangeText={this.onNameChange}
-            placeholder="name"
-          />
-          {name === '' && <Text>Wrong name!</Text>}
-        </View>
-        <View style={{ padding: 20 }}>
-          <TextInput
-            value={lastName}
-            onChangeText={this.onLastNameChange}
-            placeholder="lastName"
-          />
-          {lastName === '' && <Text>Wrong lastName!</Text>}
-        </View>
-        <Button
-          title="Sign me up!"
-          onPress={this.onLogin}
-          disabled={!email || !password || !name || !lastName}
+  return (
+    <View
+      style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: keyboardHeight,
+      }}>
+      <Text>Login</Text>
+      <View style={{ padding: 20 }}>
+        <TextInput
+          value={email}
+          onChangeText={onEmailChange}
+          placeholder="email"
         />
+        {email === '' && <Text>Wrong email!</Text>}
       </View>
-    );
-  }
-
-  private onOpenKeyboard = (event: KeyboardEvent) => {
-    this.setState({
-      keyboardHeight: event.endCoordinates.height,
-    });
-  };
-  private onCloseKeyboard = () => {
-    this.setState({
-      keyboardHeight: 0,
-    });
-  };
-
-  private onEmailChange = (email: string) => {
-    this.setState({
-      email,
-    });
-  };
-  private onPasswordChange = (password: string) => {
-    this.setState({
-      password,
-    });
-  };
-  private onNameChange = (name: string) => {
-    this.setState({
-      name,
-    });
-  };
-  private onLastNameChange = (lastName: string) => {
-    this.setState({
-      lastName,
-    });
-  };
-  private onLogin = () => {
-    const { name = '', lastName = '', email = '' } = this.state;
-    const { setUser } = this.props;
-
-    setUser({
-      name,
-      lastName,
-      email,
-    });
-  };
-}
+      <View style={{ padding: 20 }}>
+        <TextInput
+          value={password}
+          onChangeText={onPasswordChange}
+          placeholder="password"
+        />
+        {password === '' && <Text>Wrong pass!</Text>}
+      </View>
+      <View style={{ padding: 20 }}>
+        <TextInput
+          value={name}
+          onChangeText={onNameChange}
+          placeholder="name"
+        />
+        {name === '' && <Text>Wrong name!</Text>}
+      </View>
+      <View style={{ padding: 20 }}>
+        <TextInput
+          value={lastName}
+          onChangeText={onLastNameChange}
+          placeholder="lastName"
+        />
+        {lastName === '' && <Text>Wrong lastName!</Text>}
+      </View>
+      <Button
+        title="Sign me up!"
+        onPress={onLogin}
+        disabled={!email || !password || !name || !lastName}
+      />
+    </View>
+  );
+};
 
 const mapDispatchToProps = (dispatch: Dispatch<Actions>): DispatchProps => ({
   setUser: (user: User) => {
