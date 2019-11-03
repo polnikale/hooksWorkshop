@@ -1,6 +1,7 @@
 import React, { Dispatch, useCallback, useEffect, useState } from 'react';
 import { connect, useDispatch } from 'react-redux';
 import { Actions } from 'src/redux/auth/actions';
+import useKeyboardHeight from '../hooks/useKeyboardHeight';
 import * as AuthActions from '../redux/auth/actions';
 import User from '../types/User';
 import {
@@ -21,7 +22,7 @@ const Login: React.FunctionComponent<Props> = () => {
   const [password, setPassword] = useState<string | undefined>(undefined);
   const [name, setName] = useState<string | undefined>(undefined);
   const [lastName, setLastName] = useState<string | undefined>(undefined);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardHeight = useKeyboardHeight();
 
   const onEmailChange = useCallback((newEmail: string) => {
     setEmail(newEmail);
@@ -34,29 +35,6 @@ const Login: React.FunctionComponent<Props> = () => {
   }, []);
   const onLastNameChange = useCallback((newLastName: string) => {
     setLastName(newLastName);
-  }, []);
-
-  const onOpenKeyboard = useCallback((event: KeyboardEvent) => {
-    setKeyboardHeight(event.endCoordinates.height);
-  }, []);
-  const onCloseKeyboard = useCallback(() => {
-    setKeyboardHeight(0);
-  }, []);
-
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      onOpenKeyboard,
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      onCloseKeyboard,
-    );
-
-    return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
   }, []);
 
   const dispatch = useDispatch();
