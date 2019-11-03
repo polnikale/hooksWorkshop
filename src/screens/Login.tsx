@@ -1,5 +1,5 @@
 import React, { Dispatch, useCallback, useEffect, useState } from 'react';
-import { connect } from 'react-redux';
+import { connect, useDispatch } from 'react-redux';
 import { Actions } from 'src/redux/auth/actions';
 import * as AuthActions from '../redux/auth/actions';
 import User from '../types/User';
@@ -13,10 +13,6 @@ import {
   EmitterSubscription,
   KeyboardEvent,
 } from 'react-native';
-
-interface DispatchProps {
-  setUser: (user: User) => void;
-}
 
 interface Props {}
 
@@ -63,7 +59,17 @@ const Login: React.FunctionComponent<Props> = () => {
     };
   }, []);
 
-  const onLogin = useCallback(() => {}, [name, lastName, email, password]);
+  const dispatch = useDispatch();
+
+  const onLogin = useCallback(() => {
+    dispatch(
+      AuthActions.setUser({
+        name: name || '',
+        lastName: lastName || '',
+        email: email || '',
+      }),
+    );
+  }, [name, lastName, email, dispatch]);
 
   return (
     <View
@@ -115,13 +121,4 @@ const Login: React.FunctionComponent<Props> = () => {
   );
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<Actions>): DispatchProps => ({
-  setUser: (user: User) => {
-    dispatch(AuthActions.setUser(user));
-  },
-});
-
-export default connect(
-  null,
-  mapDispatchToProps,
-)(Login);
+export default Login;
