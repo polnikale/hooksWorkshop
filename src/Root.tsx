@@ -1,10 +1,9 @@
-import React, { Dispatch } from 'react';
+import React, { Dispatch, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import RootNavigator from './navigation/RootNavigator';
 import Navigator from './navigator';
 import * as AuthSelectors from './redux/auth/selectors';
-import { ApplicationState } from './redux/types';
 
 interface StateProps {
   loggedIn: boolean;
@@ -12,48 +11,31 @@ interface StateProps {
 
 type Props = StateProps;
 
-class Root extends React.Component<Props> {
-  public componentDidMount() {
-    this.switchToCorrectRoute();
-  }
+const Root: React.FunctionComponent<Props> = () => {
+  const loggedIn = useSelector(AuthSelectors.getUserLoggedIn);
+  const [route, setRoute] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    setRoute(loggedIn ? 'AuthNavigator' : 'Login');
+  }, [loggedIn]);
 
-  public componentDidUpdate() {
-    this.switchToCorrectRoute();
-  }
-
-  private switchToCorrectRoute = () => {
-    const route = this.getRoute();
-
+  useEffect(() => {
     if (route) {
       Navigator.navigate(route);
     }
-  };
+  }, [route]);
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: 'transparent',
+      }}>
+      <RootNavigator
+        ref={navigatorRef => {
+          Navigator.setTopLevelNavigator(navigatorRef);
+        }}
+      />
+    </View>
+  );
+};
 
-  private getRoute = () => {
-    const { loggedIn } = this.props;
-
-    return loggedIn ? 'AuthNavigator' : 'Login';
-  };
-
-  render() {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: 'transparent',
-        }}>
-        <RootNavigator
-          ref={navigatorRef => {
-            Navigator.setTopLevelNavigator(navigatorRef);
-          }}
-        />
-      </View>
-    );
-  }
-}
-
-const mapStateToProps = (state: ApplicationState): StateProps => ({
-  loggedIn: AuthSelectors.getUserLoggedIn(state),
-});
-
-export default connect(mapStateToProps)(Root);
+export default React.memo(Root);
